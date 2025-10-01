@@ -70,7 +70,7 @@ const UsersList = () => {
                   <td>
                     <FaEye color="gray" /> <FaGripLinesVertical />
                     <FaEdit color="#007bff" /> <FaGripLinesVertical />
-                    <FaTrash color="red" onClick={() => handleDelete(ul.id)} />
+                    <FaTrash color="red" style={{cursor:"pointer"}} onClick={() => handleDelete(ul.id)} />
                   </td>
                 </tr>
               ))}
