@@ -1,0 +1,42 @@
+.container {
+  text-align: left;
+  padding-left: 20px;
+  margin: 10px;
+  max-width: 200px;
+  cursor: pointer;
+}
+
+table {
+  border: 0.5px solid rgb(148, 143, 143);
+  width: 100%;
+  border-collapse: collapse;
+}
+table tr td {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+}
+td,
+th {
+  padding: 5px;
+  border: 1px solid black;
+  text-align: center;
+}
+td:nth-child(1) {
+  width: 50% !important;
+}
+
+/* Style for all table rows */
+table tr th {
+  background-color: #f9f9f9; /* Default background color for all rows */
+}
+
+/* Style for odd-numbered rows */
+table tr:nth-child(odd) {
+  background-color: #ffffff; /* Lighter background color for odd rows */
+}
+
+/* Style for even-numbered rows */
+table tr:nth-child(even) {
+  background-color: #e6e6e6; /* Slightly darker background color for even rows */
+}
