@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router";
 import { useEffect, useState } from "react";
-import './UserDetail.css';
+import './styles/UserDetail.css';
 import { BASE_URL } from "../utils/constants";
 
 const UserDetail = () => {
