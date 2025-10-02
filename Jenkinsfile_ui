@@ -1,0 +1,75 @@
+pipeline {
+  agent { label 'win-dev' }
+
+  parameters {
+    string(name: 'API_BASE', defaultValue: 'https://<your-backend-api>.execute-api.ap-south-1.amazonaws.com', description: 'Backend API base URL')
+    string(name: 'BUCKET_NAME', defaultValue: 'my-ui-bucket-unique', description: 'Globally unique S3 bucket name')
+    choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Terraform action')
+  }
+
+  environment {
+    AWS_REGION = 'ap-south-1'
+  }
+
+  stages {
+    stage('Tooling') {
+      steps {
+        withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
+          bat 'node -v'
+          bat 'npm -v'
+          bat 'terraform --version'
+          bat 'aws --version'
+        }
+      }
+    }
+
+    stage('UI - Build') {
+      steps {
+        dir('ui/app') {
+          withEnv(["VITE_API_BASE=${params.API_BASE}"]) {
+            bat 'npm ci'
+            bat 'npm run build'
+          }
+        }
+      }
+    }
+
+    stage('Infra - Terraform') {
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
+          withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
+            powershell '''
+              $env:AWS_DEFAULT_REGION = $env:AWS_REGION
+              $tfDir = "$env:WORKSPACE\\tf-ui-s3cf"
+
+              terraform -chdir=$tfDir init -upgrade -no-color -input=false
+
+              if ("${env:ACTION}" -eq "apply") {
+                terraform -chdir=$tfDir apply -auto-approve -var "aws_region=$env:AWS_REGION" -var "bucket_name=${env:BUCKET_NAME}"
+              } else {
+                aws s3 rm "s3://${env:BUCKET_NAME}" --recursive
+                terraform -chdir=$tfDir destroy -auto-approve -var "aws_region=$env:AWS_REGION" -var "bucket_name=${env:BUCKET_NAME}"
+              }
+            '''
+          }
+        }
+      }
+    }
+
+    stage('Upload UI (apply only)') {
+      when { expression { return params.ACTION == 'apply' } }
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
+          powershell '''
+            $dist = "$env:WORKSPACE\\ui\\app\\dist"
+            aws s3 sync $dist "s3://${env:BUCKET_NAME}" --delete
+
+            $tfDir = "$env:WORKSPACE\\tf-ui-s3cf"
+            $distId = terraform -chdir=$tfDir output -raw distribution_id
+            aws cloudfront create-invalidation --distribution-id $distId --paths "/*"
+          '''
+        }
+      }
+    }
+  }
+}
