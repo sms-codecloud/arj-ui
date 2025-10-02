@@ -19,9 +19,7 @@ const UsersList = () => {
 
   return (
     <>
-      <div>
-        <h4>Users List</h4>
-      </div>
+      <h3>Users List</h3>
       <div>
         <table>
           <thead>
@@ -46,7 +44,9 @@ const UsersList = () => {
 
                     <FaGripLinesVertical />
 
-                    <FaEdit color="#007bff" title="Edit" />
+                    <Link to={`/users/${ul.id}/edit`} title="Edit">
+                      <FaEdit color="#007bff" />
+                    </Link>
 
                     <FaGripLinesVertical />
 

@@ -23,12 +23,29 @@ export const UserProvider = ({ children }) => {
     fetchData();
   }, []);
 
+  const getUserById = async (id) => {
+    // First check local state
+    const existing = userList.find((user) => user.id === Number(id));
+    if (existing) return existing;
+
+    try {
+      const res = await fetch(`${BASE_URL}/users/${id}`);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch user by ID:", error);
+      return null;
+    }
+  };
+
   const deleteUser = (id) => {
     setUserList((prevList) => prevList.filter((user) => user.id !== id));
   };
 
   return (
-    <UserContext.Provider value={{ userList, deleteUser, isLoading }}>
+    <UserContext.Provider
+      value={{ userList, deleteUser, isLoading, getUserById }}
+    >
       {children}
     </UserContext.Provider>
   );

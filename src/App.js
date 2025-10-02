@@ -6,6 +6,7 @@ import ErrorPage from "./components/ErrorPage";
 import { UserProvider } from "./context/userContext";
 import { ModalProvider, useModal } from "./context/modalContext";
 import ConfirmModal from "./components/ConfirmModal";
+import EditUser from "./components/EditUser";
 
 const AppLayout = () => {
   const { isOpen, message, confirm, closeConfirm } = useModal();
@@ -30,6 +31,7 @@ const appRouter = createBrowserRouter([
     children: [
       { path: "/", element: <UsersList /> },
       { path: "/users/:id", element: <UserDetail /> },
+      { path: "/users/:id/edit", element: <EditUser /> },
     ],
   },
 ]);
