@@ -23,7 +23,7 @@
 
 - npm install react-router-dom
 - If routing error appears follow below steps
-  -- Remove-Item -Recurse -Force node_modules, package-lock.json, .parcel-cache
-  -- npm install
-  -- npx parcel cache clear
-  -- npm install react-router-dom@latest
+  - Remove-Item -Recurse -Force node_modules, package-lock.json, .parcel-cache
+  - npm install
+  - npx parcel cache clear
+  - npm install react-router-dom@latest
