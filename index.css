@@ -1,42 +1,60 @@
 .container {
   text-align: left;
-  padding-left: 20px;
-  margin: 10px;
-  max-width: 200px;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 300px;
+  background-color: #fafafa;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.container:hover {
+  transform: scale(1.02);
 }
 
 table {
-  border: 0.5px solid rgb(148, 143, 143);
   width: 100%;
   border-collapse: collapse;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  color: #333;
 }
-table tr td {
-  max-width: 100%;
+
+th,
+td {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #f0f0f0;
+  font-weight: 600;
+  color: #222;
+}
+
+td:nth-child(1) {
+  width: 50%;
+  font-weight: 500;
+  color: #444;
   white-space: nowrap;
   overflow: hidden;
-}
-td,
-th {
-  padding: 5px;
-  border: 1px solid black;
-  text-align: center;
-}
-td:nth-child(1) {
-  width: 50% !important;
+  text-overflow: ellipsis;
 }
 
-/* Style for all table rows */
-table tr th {
-  background-color: #f9f9f9; /* Default background color for all rows */
+/* Zebra striping */
+tr:nth-child(even) {
+  background-color: #f9f9f9;
 }
 
-/* Style for odd-numbered rows */
-table tr:nth-child(odd) {
-  background-color: #ffffff; /* Lighter background color for odd rows */
+tr:nth-child(odd) {
+  background-color: #ffffff;
 }
 
-/* Style for even-numbered rows */
-table tr:nth-child(even) {
-  background-color: #e6e6e6; /* Slightly darker background color for even rows */
+/* Row hover effect */
+tr:hover {
+  background-color: #dfeffc;
+  transition: background-color 0.2s ease-in-out;
 }

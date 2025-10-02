@@ -1,54 +1,48 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEye, FaEdit, FaTrash, FaGripLinesVertical } from "react-icons/fa";
 import ConfirmModal from "./ConfirmModal";
+import { BASE_URL } from "../utils/constants";
+import { Link } from "react-router";
 
 const UsersList = () => {
   const [userList, setUserList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true); 
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetch("https://jsonplaceholder.typicode.com/users");
-      const dataJson = await data.json();
-      setUserList(dataJson);
+      const response = await fetch(`${BASE_URL}/users`);
+      const data = await response.json();
+      setUserList(data);
     };
     fetchData();
   }, []);
 
-  //   const handleDelete = (id) => {
-  //     const confirmDelete = window.confirm(
-  //       "Are you sure you want to delete this record?"
-  //     );
-  //     if (confirmDelete) {
-  //       const data = userList?.filter((x) => x.id !== id);
-  //       setUserList(data);
-  //     }
-  //   };
-
-  // Open modal when delete icon clicked
   const handleDelete = (id) => {
     setSelectedUserId(id);
     setShowConfirm(true);
   };
 
-  // Confirm delete
   const handleConfirmDelete = () => {
     setUserList((prevList) => prevList.filter((x) => x.id !== selectedUserId));
     setShowConfirm(false);
     setSelectedUserId(null);
   };
 
-  // Cancel delete
   const handleCloseModal = () => {
     setShowConfirm(false);
     setSelectedUserId(null);
   };
 
+   if(userList.length===0){
+      return <div>Loading...</div>
+    }
+
   return (
     <>
       <div>
-        <h4>UsersList</h4>
+        <h4>Users List</h4>
       </div>
       <div>
         <table>
@@ -68,9 +62,22 @@ const UsersList = () => {
                   <td>{ul.email}</td>
                   <td>{ul.phone}</td>
                   <td>
-                    <FaEye color="gray" /> <FaGripLinesVertical />
-                    <FaEdit color="#007bff" /> <FaGripLinesVertical />
-                    <FaTrash color="red" style={{cursor:"pointer"}} onClick={() => handleDelete(ul.id)} />
+                    <Link to={`/users/${ul.id}`} title="View Details">
+                      <FaEye color="gray" />
+                    </Link>
+                    
+                    <FaGripLinesVertical />
+                   
+                    <FaEdit color="#007bff" title="Edit" />
+                    
+                    <FaGripLinesVertical />
+                   
+                    <FaTrash
+                      color="red"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleDelete(ul.id)}
+                      title="Delete"
+                    />
                   </td>
                 </tr>
               ))}
