@@ -3,7 +3,7 @@ pipeline {
 
   parameters {
     string(name: 'API_BASE', defaultValue: 'https://<your-backend-api>.execute-api.ap-south-1.amazonaws.com', description: 'Backend API base URL')
-    string(name: 'BUCKET_NAME', defaultValue: 'my-ui-bucket-unique', description: 'Globally unique S3 bucket name')
+    string(name: 'BUCKET_NAME', defaultValue: 'arj-bootcamp', description: 'Globally unique S3 bucket name')
     choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Terraform action')
   }
 
