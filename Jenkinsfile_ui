@@ -24,15 +24,30 @@ pipeline {
     }
 
     stage('UI - Build') {
-      steps {
-        dir('ui/app') {
-          withEnv(["VITE_API_BASE=${params.API_BASE}"]) {
-            bat 'npm ci'
-            bat 'npm run build'
-          }
-        }
+  steps {
+    dir('ui/app') {
+      withEnv(["VITE_API_BASE=${params.API_BASE}"]) {
+        // ensure Node/npm present
+        bat 'node -v'
+        bat 'npm -v'
+
+        // If lockfile exists -> npm ci ; otherwise generate it with npm install
+        powershell '''
+            $ErrorActionPreference = "Stop"
+            if (Test-Path ".\\package-lock.json") {
+            Write-Host "package-lock.json found -> npm ci"
+            npm ci
+            } else {
+            Write-Host "package-lock.json not found -> npm install (generates lockfile)"
+            npm install --no-fund --no-audit
+            }
+            npm run build
+        '''
       }
     }
+  }
+}
+
 
     stage('Infra - Terraform') {
       steps {
