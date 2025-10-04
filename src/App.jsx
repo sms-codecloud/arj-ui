@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import UserDetails from "./components/UserDetails";
 import UsersList from "./components/UserList";
 import UserEdit from "./components/UserEdit";
+import Error from "./components/Error";
 
 function App() {
   const appRouter = createBrowserRouter([
