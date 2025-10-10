@@ -67,12 +67,6 @@ td:last-child {
   white-space: nowrap;
 }
 
-.action-icons {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
 .add-user-btn {
   background-color: #007bff;
   color: white;
@@ -125,4 +119,10 @@ textarea {
 .cancelBtn {
   background-color: "#ccc";
   color: "#333";
+}
+
+.no-records {
+  text-align: center;
+  font-style: italic; /* optional */
+  color: #777; /* optional */
 }

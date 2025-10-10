@@ -15,32 +15,31 @@ const UserEdit = () => {
       setUser(data);
     };
     fetchUser();
-  }, [id, getUserById]);
+  }, [id]);
+
+  if (!user) return <div>Loading...</div>;
 
   return (
     <div className="user-edit-card">
       <h3>Edit User</h3>
       <form>
         <div className="section">
-          <label>Name</label>
-          <input name="name" value={user?.name} />
+          <label>First Name</label>
+          <input name="name" value={user?.firstName} />
 
-          <label>Username</label>
-          <input name="username" value={user?.username} />
+          <label>Last Name</label>
+          <input name="username" value={user?.lastName} />
 
           <label>Email</label>
           <input name="email" value={user?.email} />
 
           <label>Phone</label>
-          <input name="phone" value={user?.phone} />
+          <input name="phone" value={user?.phoneNo} />
         </div>
 
         <div className="section">
           <h4>Address</h4>
-          <textarea
-            name="address.street"
-            value={`${user?.address?.street}, ${user?.address?.suite}, ${user?.address?.city} - ${user?.address?.zipcode}`}
-          />
+          <textarea name="address.street" value={`${user?.address}`} />
         </div>
         <div className="actions">
           <button type="submit">Save</button>

@@ -1,4 +1,4 @@
-export const BASE_URL = "https://jsonplaceholder.typicode.com";
+export const BASE_URL = "http://arjwsilkal-001-site1.stempurl.com";
 
 export const ERROR_MESSAGES = {
   name: {

@@ -49,20 +49,23 @@ const UsersList = () => {
             </tr>
           </thead>
           <tbody>
-            {userList &&
-              userList.map((ul) => (
-                <tr key={ul.id}>
-                  <td>{ul.name}</td>
-                  <td>{ul.email}</td>
-                  <td>{ul.phone}</td>
-                  <td className="action-icons">
-                    <Link to={`/users/${ul.id}`} title="View Details">
+            {userList.length > 0 ? (
+              userList.map((user) => (
+                <tr key={user.employeeId}>
+                  <td>{`${user.firstName} ${user.lastName}`}</td>
+                  <td>{user.email}</td>
+                  <td>{user.phoneNo}</td>
+                  <td>
+                    <Link
+                      to={`/employee/${user.employeeId}`}
+                      title="View Details"
+                    >
                       <FaEye color="gray" />
                     </Link>
 
                     <FaGripLinesVertical />
 
-                    <Link to={`/users/${ul.id}/edit`} title="Edit">
+                    <Link to={`/users/${user.employeeId}/edit`} title="Edit">
                       <FaEdit color="#007bff" />
                     </Link>
 
@@ -71,12 +74,19 @@ const UsersList = () => {
                     <FaTrash
                       color="red"
                       style={{ cursor: "pointer" }}
-                      onClick={() => handleDelete(ul.id)}
+                      onClick={() => handleDelete(user.employeeId)}
                       title="Delete"
                     />
                   </td>
                 </tr>
-              ))}
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="no-records">
+                  No records found!
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

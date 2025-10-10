@@ -10,7 +10,7 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/users`);
+        const response = await fetch(`${BASE_URL}/api/EmployeeList`);
         const data = await response.json();
         setUserList(data);
         setIsLoading(false);
@@ -24,12 +24,8 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const getUserById = async (id) => {
-    // First check local state
-    const existing = userList.find((user) => user.id === Number(id));
-    if (existing) return existing;
-
     try {
-      const res = await fetch(`${BASE_URL}/users/${id}`);
+      const res = await fetch(`${BASE_URL}/api/EmployeeById/${id}`);
       const data = await res.json();
       return data;
     } catch (error) {
@@ -38,8 +34,25 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const deleteUser = (id) => {
-    setUserList((prevList) => prevList.filter((user) => user.id !== id));
+  const deleteUser = async (id) => {
+    try {
+      const userDelete = await fetch(`${BASE_URL}/api/EmployeeDelete/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!userDelete.ok) {
+        throw new Error(`HTTP error! status: ${userDelete.status}`);
+      }
+      setUserList((prevList) =>
+        prevList.filter((user) => user.employeeId !== id)
+      );
+    } catch (error) {
+      console.error("Failed to fetch user by ID:", error);
+      return null;
+    }
   };
 
   return (

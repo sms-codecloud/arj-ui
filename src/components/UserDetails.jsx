@@ -14,32 +14,27 @@ const UserDetails = () => {
       setUser(data);
     };
     fetchUser();
-  }, [id, getUserById]);
+  }, [id]);
 
   if (!user) return <div>Loading...</div>;
 
-  const { name, username, email, phone, address } = user;
+  const { firstName, lastName, email, phoneNo, address } = user;
 
   return (
     <div className="user-card">
       <h2>{name}</h2>
       <p>
-        <strong>Username:</strong> {username}
+        <strong>Username:</strong> {`${firstName} ${lastName}`}
       </p>
       <p>
         <strong>Email:</strong> {email}
       </p>
       <p>
-        <strong>Phone:</strong> {phone}
+        <strong>Phone:</strong> {phoneNo}
       </p>
       <div className="section">
         <h3>Address</h3>
-        <p>
-          {address.street}, {address.suite}
-        </p>
-        <p>
-          {address.city} - {address.zipcode}
-        </p>
+        <p>{address}</p>
       </div>
 
       <div className="section">
