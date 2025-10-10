@@ -2,14 +2,16 @@ import { ERROR_MESSAGES } from "./constants";
 
 export const validateForm = (formData) => {
   const newErrors = {};
-  if (!formData.name.trim()) {
-    newErrors.name = ERROR_MESSAGES.name.required;
-  } else if (!/^[A-Za-z\s]+$/.test(formData.name)) {
-    newErrors.name = ERROR_MESSAGES.name.invalid;
+  if (!formData.firstName.trim()) {
+    newErrors.firstName = ERROR_MESSAGES.firstName.required;
+  } else if (!/^[A-Za-z]+$/.test(formData.firstName)) {
+    newErrors.firstName = ERROR_MESSAGES.firstName.invalid;
   }
 
-  if (!formData.displayName.trim()) {
-    newErrors.displayName = ERROR_MESSAGES.displayName.required;
+  if (!formData.lastName.trim()) {
+    newErrors.lastName = ERROR_MESSAGES.lastName.required;
+  } else if (!/^[A-Za-z]+$/.test(formData.lastName)) {
+    newErrors.lastName = ERROR_MESSAGES.lastName.invalid;
   }
 
   if (!formData.email.trim()) {
@@ -18,10 +20,10 @@ export const validateForm = (formData) => {
     newErrors.email = ERROR_MESSAGES.email.invalid;
   }
 
-  if (!formData.phone.trim()) {
-    newErrors.phone = ERROR_MESSAGES.phone.required;
-  } else if (!/^\d{10}$/.test(formData.phone)) {
-    newErrors.phone = ERROR_MESSAGES.phone.invalid;
+  if (!formData.phoneNo.trim()) {
+    newErrors.phoneNo = ERROR_MESSAGES.phoneNo.required;
+  } else if (!/^\d{10}$/.test(formData.phoneNo)) {
+    newErrors.phoneNo = ERROR_MESSAGES.phoneNo.invalid;
   }
 
   if (!formData.address.trim()) {

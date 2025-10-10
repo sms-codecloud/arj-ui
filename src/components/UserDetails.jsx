@@ -22,7 +22,6 @@ const UserDetails = () => {
 
   return (
     <div className="user-card">
-      <h2>{name}</h2>
       <p>
         <strong>Username:</strong> {`${firstName} ${lastName}`}
       </p>

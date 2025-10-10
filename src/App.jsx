@@ -16,8 +16,8 @@ function App() {
       errorElement: <Error />,
       children: [
         { path: "/", element: <UsersList /> }, // /users
-        { path: "employee/:id", element: <UserDetails /> }, // /user details
-        { path: "users/:id/edit", element: <UserEdit /> }, // /user eidt
+        { path: "user-details/:id", element: <UserDetails /> }, // /user details
+        { path: "users-edit/:id", element: <UserEdit /> }, // /user eidt
         { path: "add-user", element: <AddUser /> }, // /user creation
       ],
     },

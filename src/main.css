@@ -17,7 +17,8 @@ a:hover {
 }
 
 table {
-  width: 100%;
+  width: 80%;
+  margin: 0 auto;
   border-collapse: collapse;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 14px;

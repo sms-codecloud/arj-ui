@@ -1,19 +1,24 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { validateForm } from "../utils/validateForm.jsx";
 import "./styles/userEdit.css";
+import useUserInfo from "../context/userContext.jsx";
 
 const AddUser = () => {
+  const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    name: "",
-    displayName: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    phone: "",
+    phoneNo: "",
     address: "",
   });
 
-  const handleSubmit = (e) => {
+  const { createUser } = useUserInfo();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validateForm(formData);
 
@@ -23,6 +28,22 @@ const AddUser = () => {
     }
 
     setErrors({});
+
+    setIsSaving(true);
+    const success = await createUser(formData);
+    setIsSaving(false);
+
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNo: "",
+      address: "",
+    });
+
+    if (success) {
+      navigate("/");
+    }
   };
 
   const handleInputChange = (e) => {
@@ -35,31 +56,33 @@ const AddUser = () => {
       <h3>Add User</h3>
       <form onSubmit={handleSubmit}>
         <div className="section">
-          <label htmlFor="name">
-            Full Name <span className="asterisk">*</span>
+          <label htmlFor="firstName">
+            First Name <span className="asterisk">*</span>
           </label>
           <input
             type="text"
-            name="name"
-            id="name"
-            value={formData.name}
-            className={errors.name ? "error" : ""}
+            name="firstName"
+            id="firstName"
+            value={formData.firstName}
+            className={errors.firstName ? "error" : ""}
             onChange={(e) => handleInputChange(e)}
           />
-          {errors.name && <span className="error-text">{errors.name}</span>}
+          {errors.firstName && (
+            <span className="error-text">{errors.firstName}</span>
+          )}
 
           <label htmlFor="displayName">
-            Display Name <span className="asterisk">*</span>
+            Last Name <span className="asterisk">*</span>
           </label>
           <input
-            name="displayName"
-            id="displayName"
+            name="lastName"
+            id="lastName"
             value={formData.displayName}
-            className={errors.displayName ? "error" : ""}
+            className={errors.lastName ? "error" : ""}
             onChange={(e) => handleInputChange(e)}
           />
-          {errors.displayName && (
-            <span className="error-text">{errors.displayName}</span>
+          {errors.lastName && (
+            <span className="error-text">{errors.lastName}</span>
           )}
 
           <label htmlFor="email">
@@ -74,17 +97,20 @@ const AddUser = () => {
           />
           {errors.email && <span className="error-text">{errors.email}</span>}
 
-          <label htmlFor="phone">
+          <label htmlFor="phoneNo">
             Phone <span className="asterisk">*</span>
           </label>
           <input
-            name="phone"
-            id="phone"
-            className={errors.phone ? "error" : ""}
-            value={formData.phone}
+            name="phoneNo"
+            id="phoneNo"
+            className={errors.phoneNo ? "error" : ""}
+            value={formData.phoneNo}
             onChange={(e) => handleInputChange(e)}
+            max={10}
           />
-          {errors.phone && <span className="error-text">{errors.phone}</span>}
+          {errors.phoneNo && (
+            <span className="error-text">{errors.phoneNo}</span>
+          )}
         </div>
 
         <div className="section">
@@ -104,7 +130,10 @@ const AddUser = () => {
         </div>
 
         <div className="actions">
-          <button type="submit">Save</button>
+          <button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </button>
+
           <Link to="/" style={{ padding: "10px" }}>
             Back to List
           </Link>

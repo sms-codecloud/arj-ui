@@ -30,6 +30,8 @@ const UsersList = () => {
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: "10px",
+          marginRight: "10%",
+          marginLeft: "10%",
         }}
       >
         <h3>Users List</h3>
@@ -57,15 +59,20 @@ const UsersList = () => {
                   <td>{user.phoneNo}</td>
                   <td>
                     <Link
-                      to={`/employee/${user.employeeId}`}
+                      to={`/user-details/${user.employeeId}`}
                       title="View Details"
+                      style={{ marginRight: "10px" }}
                     >
                       <FaEye color="gray" />
                     </Link>
 
                     <FaGripLinesVertical />
 
-                    <Link to={`/users/${user.employeeId}/edit`} title="Edit">
+                    <Link
+                      to={`/users-edit/${user.employeeId}`}
+                      title="Edit"
+                      style={{ margin: "0 10px" }}
+                    >
                       <FaEdit color="#007bff" />
                     </Link>
 
@@ -73,9 +80,9 @@ const UsersList = () => {
 
                     <FaTrash
                       color="red"
-                      style={{ cursor: "pointer" }}
                       onClick={() => handleDelete(user.employeeId)}
                       title="Delete"
+                      style={{ cursor: "pointer", marginLeft: "10px" }}
                     />
                   </td>
                 </tr>
