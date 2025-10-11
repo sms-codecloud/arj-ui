@@ -1,4 +1,4 @@
-export const BASE_URL = "http://arjwsilkal-001-site1.stempurl.com";
+export const BASE_URL = "https://arjwsilkal-001-site1.stempurl.com";
 
 export const ERROR_MESSAGES = {
   firstName: {
