@@ -2,6 +2,7 @@ import { FaEye, FaEdit, FaTrash, FaGripLinesVertical } from "react-icons/fa";
 import { Link, useNavigate } from "react-router";
 import useUserInfo from "../context/userContext.jsx";
 import { useModal } from "../context/modalContext.jsx";
+import Spinner from "./Spinner.jsx";
 
 const UsersList = () => {
   const { userList, deleteUser, isLoading } = useUserInfo();
@@ -19,7 +20,11 @@ const UsersList = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <Spinner size={60} color="#e74c3c" overlay={true} />
+      </div>
+    );
   }
 
   return (
@@ -40,63 +45,61 @@ const UsersList = () => {
         </button>
       </div>
 
-      <div>
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {userList.length > 0 ? (
-              userList.map((user) => (
-                <tr key={user.employeeId}>
-                  <td>{`${user.firstName} ${user.lastName}`}</td>
-                  <td>{user.email}</td>
-                  <td>{user.phoneNo}</td>
-                  <td>
-                    <Link
-                      to={`/user-details/${user.employeeId}`}
-                      title="View Details"
-                      style={{ marginRight: "10px" }}
-                    >
-                      <FaEye color="gray" />
-                    </Link>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {userList.length > 0 ? (
+            userList.map((user) => (
+              <tr key={user.employeeId}>
+                <td>{`${user.firstName} ${user.lastName}`}</td>
+                <td>{user.email}</td>
+                <td>{user.phoneNo}</td>
+                <td>
+                  <Link
+                    to={`/user-details/${user.employeeId}`}
+                    title="View Details"
+                    style={{ marginRight: "10px" }}
+                  >
+                    <FaEye color="gray" />
+                  </Link>
 
-                    <FaGripLinesVertical />
+                  <FaGripLinesVertical />
 
-                    <Link
-                      to={`/user-edit/${user.employeeId}`}
-                      title="Edit"
-                      style={{ margin: "0 10px" }}
-                    >
-                      <FaEdit color="#007bff" />
-                    </Link>
+                  <Link
+                    to={`/user-edit/${user.employeeId}`}
+                    title="Edit"
+                    style={{ margin: "0 10px" }}
+                  >
+                    <FaEdit color="#007bff" />
+                  </Link>
 
-                    <FaGripLinesVertical />
+                  <FaGripLinesVertical />
 
-                    <FaTrash
-                      color="red"
-                      onClick={() => handleDelete(user.employeeId)}
-                      title="Delete"
-                      style={{ cursor: "pointer", marginLeft: "10px" }}
-                    />
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={4} className="no-records">
-                  No records found!
+                  <FaTrash
+                    color="red"
+                    onClick={() => handleDelete(user.employeeId)}
+                    title="Delete"
+                    style={{ cursor: "pointer", marginLeft: "10px" }}
+                  />
                 </td>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={4} className="no-records">
+                No records found!
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </>
   );
 };

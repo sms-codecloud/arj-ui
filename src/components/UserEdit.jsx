@@ -1,8 +1,9 @@
-import { Link, useNavigate, useParams } from "react-router";
-import "./styles/userEdit.css";
-import useUserInfo from "../context/userContext.jsx";
 import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
+import useUserInfo from "../context/userContext.jsx";
 import { validateForm } from "../utils/validateForm.jsx";
+import Spinner from "./Spinner.jsx";
+import "./styles/userEdit.css";
 
 const UserEdit = () => {
   const { id } = useParams();
@@ -52,7 +53,12 @@ const UserEdit = () => {
     }
   };
 
-  if (!user) return <div>Loading...</div>;
+  if (!user)
+    return (
+      <>
+        <Spinner size={60} color="#e74c3c" overlay={true} />
+      </>
+    );
 
   return (
     <div className="user-edit-card">
