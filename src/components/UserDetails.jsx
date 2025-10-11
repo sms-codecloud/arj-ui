@@ -22,8 +22,11 @@ const UserDetails = () => {
 
   return (
     <div className="user-card">
+      <h3 style={{ borderBottom: "1px solid #ddd", paddingBottom: "16px" }}>
+        User Details
+      </h3>
       <p>
-        <strong>Username:</strong> {`${firstName} ${lastName}`}
+        <strong>Full Name:</strong> {`${firstName} ${lastName}`}
       </p>
       <p>
         <strong>Email:</strong> {email}

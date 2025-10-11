@@ -1,6 +1,6 @@
 .user-card {
   max-width: 500px;
-  margin: 20px auto;
+  margin: 5% auto;
   padding: 20px 25px;
   background-color: #fff;
   border: 1px solid #ddd;
@@ -9,9 +9,10 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.user-card h2 {
+.user-card h3 {
   margin-top: 0;
   color: #333;
+  margin-bottom: "10px";
 }
 
 .user-card p {

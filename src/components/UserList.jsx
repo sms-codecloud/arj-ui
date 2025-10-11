@@ -69,7 +69,7 @@ const UsersList = () => {
                     <FaGripLinesVertical />
 
                     <Link
-                      to={`/users-edit/${user.employeeId}`}
+                      to={`/user-edit/${user.employeeId}`}
                       title="Edit"
                       style={{ margin: "0 10px" }}
                     >

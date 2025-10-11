@@ -17,7 +17,7 @@ function App() {
       children: [
         { path: "/", element: <UsersList /> }, // /users
         { path: "user-details/:id", element: <UserDetails /> }, // /user details
-        { path: "users-edit/:id", element: <UserEdit /> }, // /user eidt
+        { path: "user-edit/:id", element: <UserEdit /> }, // /user eidt
         { path: "add-user", element: <AddUser /> }, // /user creation
       ],
     },
