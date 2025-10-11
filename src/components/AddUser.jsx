@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { validateForm } from "../utils/validateForm.jsx";
-import "./styles/userEdit.css";
 import useUserInfo from "../context/userContext.jsx";
 
 const AddUser = () => {
@@ -55,79 +54,71 @@ const AddUser = () => {
     <div className="user-edit-card">
       <h3>Add User</h3>
       <form onSubmit={handleSubmit}>
-        <div className="section">
-          <label htmlFor="firstName">
-            First Name <span className="asterisk">*</span>
-          </label>
-          <input
-            type="text"
-            name="firstName"
-            id="firstName"
-            value={formData.firstName}
-            className={errors.firstName ? "error" : ""}
-            onChange={(e) => handleInputChange(e)}
-          />
-          {errors.firstName && (
-            <span className="error-text">{errors.firstName}</span>
-          )}
+        <label htmlFor="firstName">
+          First Name <span className="asterisk">*</span>
+        </label>
+        <input
+          type="text"
+          name="firstName"
+          id="firstName"
+          value={formData.firstName}
+          className={errors.firstName ? "error" : ""}
+          onChange={handleInputChange}
+        />
+        {errors.firstName && (
+          <span className="error-text">{errors.firstName}</span>
+        )}
 
-          <label htmlFor="displayName">
-            Last Name <span className="asterisk">*</span>
-          </label>
-          <input
-            name="lastName"
-            id="lastName"
-            value={formData.displayName}
-            className={errors.lastName ? "error" : ""}
-            onChange={(e) => handleInputChange(e)}
-          />
-          {errors.lastName && (
-            <span className="error-text">{errors.lastName}</span>
-          )}
+        <label htmlFor="lastName">
+          Last Name <span className="asterisk">*</span>
+        </label>
+        <input
+          name="lastName"
+          id="lastName"
+          value={formData.lastName}
+          className={errors.lastName ? "error" : ""}
+          onChange={handleInputChange}
+        />
+        {errors.lastName && (
+          <span className="error-text">{errors.lastName}</span>
+        )}
 
-          <label htmlFor="email">
-            Email<span className="asterisk">*</span>
-          </label>
-          <input
-            name="email"
-            id="email"
-            className={errors.email ? "error" : ""}
-            value={formData.email}
-            onChange={(e) => handleInputChange(e)}
-          />
-          {errors.email && <span className="error-text">{errors.email}</span>}
+        <label htmlFor="email">
+          Email <span className="asterisk">*</span>
+        </label>
+        <input
+          name="email"
+          id="email"
+          className={errors.email ? "error" : ""}
+          value={formData.email}
+          onChange={handleInputChange}
+        />
+        {errors.email && <span className="error-text">{errors.email}</span>}
 
-          <label htmlFor="phoneNo">
-            Phone <span className="asterisk">*</span>
-          </label>
-          <input
-            name="phoneNo"
-            id="phoneNo"
-            className={errors.phoneNo ? "error" : ""}
-            value={formData.phoneNo}
-            onChange={(e) => handleInputChange(e)}
-            max={10}
-          />
-          {errors.phoneNo && (
-            <span className="error-text">{errors.phoneNo}</span>
-          )}
-        </div>
+        <label htmlFor="phoneNo">
+          Phone <span className="asterisk">*</span>
+        </label>
+        <input
+          name="phoneNo"
+          id="phoneNo"
+          className={errors.phoneNo ? "error" : ""}
+          value={formData.phoneNo}
+          onChange={handleInputChange}
+          max={10}
+        />
+        {errors.phoneNo && <span className="error-text">{errors.phoneNo}</span>}
 
-        <div className="section">
-          <label htmlFor="address">
-            Address <span className="asterisk">*</span>
-          </label>
-          <textarea
-            id="address"
-            name="address"
-            value={formData.address}
-            className={errors.address ? "error" : ""}
-            onChange={(e) => handleInputChange(e)}
-          />
-          {errors.address && (
-            <span className="error-text">{errors.address}</span>
-          )}
-        </div>
+        <label htmlFor="address">
+          Address <span className="asterisk">*</span>
+        </label>
+        <textarea
+          id="address"
+          name="address"
+          value={formData.address}
+          className={errors.address ? "error" : ""}
+          onChange={handleInputChange}
+        />
+        {errors.address && <span className="error-text">{errors.address}</span>}
 
         <div className="actions">
           <button type="submit" disabled={isSaving}>

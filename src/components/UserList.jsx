@@ -21,37 +21,30 @@ const UsersList = () => {
 
   if (isLoading) {
     return (
-      <div>
-        <Spinner size={60} color="#e74c3c" overlay={true} />
+      <div className="spinner-wrapper">
+        <Spinner size={60} color="#3498db" overlay={true} />
       </div>
     );
   }
 
   return (
-    <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "10px",
-          marginRight: "10%",
-          marginLeft: "10%",
-        }}
-      >
-        <h3>Users List</h3>
-        <button className="add-user-btn" onClick={() => handleAddUser()}>
+    <section className="users-list-container">
+      <div className="users-list-header">
+        <h2>Users List</h2>
+        <button className="btn add-user-btn" onClick={handleAddUser}>
           Add User
         </button>
       </div>
 
-      <table>
+      <table className="users-table" aria-label="Users List Table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Actions</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col" className="actions-column">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -61,32 +54,38 @@ const UsersList = () => {
                 <td>{`${user.firstName} ${user.lastName}`}</td>
                 <td>{user.email}</td>
                 <td>{user.phoneNo}</td>
-                <td>
+                <td className="actions-cell">
                   <Link
                     to={`/user-details/${user.employeeId}`}
-                    title="View Details"
-                    style={{ marginRight: "10px" }}
+                    aria-label={`View details of ${user.firstName} ${user.lastName}`}
+                    className="action-icon view-icon"
                   >
-                    <FaEye color="gray" />
+                    <FaEye size={18} />
                   </Link>
 
-                  <FaGripLinesVertical />
+                  <FaGripLinesVertical
+                    className="divider-icon"
+                    aria-hidden="true"
+                  />
 
                   <Link
                     to={`/user-edit/${user.employeeId}`}
-                    title="Edit"
-                    style={{ margin: "0 10px" }}
+                    aria-label={`Edit ${user.firstName} ${user.lastName}`}
+                    className="action-icon edit-icon"
                   >
-                    <FaEdit color="#007bff" />
+                    <FaEdit size={18} />
                   </Link>
 
-                  <FaGripLinesVertical />
+                  <FaGripLinesVertical
+                    className="divider-icon"
+                    aria-hidden="true"
+                  />
 
                   <FaTrash
-                    color="red"
                     onClick={() => handleDelete(user.employeeId)}
-                    title="Delete"
-                    style={{ cursor: "pointer", marginLeft: "10px" }}
+                    className="action-icon delete-icon"
+                    aria-label={`Delete ${user.firstName} ${user.lastName}`}
+                    size={18}
                   />
                 </td>
               </tr>
@@ -100,7 +99,7 @@ const UsersList = () => {
           )}
         </tbody>
       </table>
-    </>
+    </section>
   );
 };
 

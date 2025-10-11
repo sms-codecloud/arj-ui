@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams } from "react-router-dom";
 import useUserInfo from "../context/userContext.jsx";
 import Spinner from "./Spinner.jsx";
-import "./styles/userEdit.css";
 
 const UserDetails = () => {
   const { id } = useParams();
@@ -17,36 +16,33 @@ const UserDetails = () => {
     fetchUser();
   }, [id]);
 
-  if (!user)
-    return (
-      <>
-        <Spinner size={60} color="#e74c3c" overlay={true} />
-      </>
-    );
+  if (!user) {
+    return <Spinner size={60} color="#3498db" overlay={true} />;
+  }
 
   const { firstName, lastName, email, phoneNo, address } = user;
 
   return (
-    <div className="user-edit-card">
+    <div className="user-details-card">
       <h3>User Details</h3>
-      <div className="section">
-        <p>
-          <strong>Full Name:</strong> {`${firstName} ${lastName}`}
-        </p>
-        <p>
-          <strong>Email:</strong> {email}
-        </p>
-        <p>
-          <strong>Phone:</strong> {phoneNo}
-        </p>
-      </div>
-      <div className="section">
-        <h4>Address</h4>
-        <p>{address}</p>
-      </div>
 
-      <div className="section">
-        <Link to="/">Back to Home</Link>
+      <p>
+        <strong>Full Name:</strong> {firstName} {lastName}
+      </p>
+      <p>
+        <strong>Email:</strong> {email}
+      </p>
+      <p>
+        <strong>Phone:</strong> {phoneNo}
+      </p>
+      <p>
+        <strong>Address:</strong> {address}
+      </p>
+
+      <div className="actions">
+        <Link to="/">
+          Back to Home
+        </Link>
       </div>
     </div>
   );

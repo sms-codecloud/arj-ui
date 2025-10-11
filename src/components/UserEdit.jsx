@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from "react-router";
 import useUserInfo from "../context/userContext.jsx";
 import { validateForm } from "../utils/validateForm.jsx";
 import Spinner from "./Spinner.jsx";
-import "./styles/userEdit.css";
 
 const UserEdit = () => {
   const { id } = useParams();
@@ -56,7 +55,7 @@ const UserEdit = () => {
   if (!user)
     return (
       <>
-        <Spinner size={60} color="#e74c3c" overlay={true} />
+        <Spinner size={60} color="#3498db" overlay={true} />
       </>
     );
 
@@ -64,62 +63,54 @@ const UserEdit = () => {
     <div className="user-edit-card">
       <h3>Edit User</h3>
       <form onSubmit={handleSubmit}>
-        <div className="section">
-          <label>First Name</label>
-          <input
-            name="firstName"
-            value={user.firstName || ""}
-            onChange={handleInputChange}
-            className={errors.firstName ? "error" : ""}
-          />
-          {errors.firstName && (
-            <span className="error-text">{errors.firstName}</span>
-          )}
+        <label>First Name</label>
+        <input
+          name="firstName"
+          value={user.firstName || ""}
+          onChange={handleInputChange}
+          className={errors.firstName ? "error" : ""}
+        />
+        {errors.firstName && (
+          <span className="error-text">{errors.firstName}</span>
+        )}
 
-          <label>Last Name</label>
-          <input
-            name="lastName"
-            value={user.lastName || ""}
-            onChange={handleInputChange}
-            className={errors.lastName ? "error" : ""}
-          />
-          {errors.lastName && (
-            <span className="error-text">{errors.lastName}</span>
-          )}
+        <label>Last Name</label>
+        <input
+          name="lastName"
+          value={user.lastName || ""}
+          onChange={handleInputChange}
+          className={errors.lastName ? "error" : ""}
+        />
+        {errors.lastName && (
+          <span className="error-text">{errors.lastName}</span>
+        )}
 
-          <label>Email</label>
-          <input
-            name="email"
-            value={user.email || ""}
-            onChange={handleInputChange}
-            className={errors.email ? "error" : ""}
-          />
-          {errors.email && <span className="error-text">{errors.email}</span>}
+        <label>Email</label>
+        <input
+          name="email"
+          value={user.email || ""}
+          onChange={handleInputChange}
+          className={errors.email ? "error" : ""}
+        />
+        {errors.email && <span className="error-text">{errors.email}</span>}
 
-          <label>Phone</label>
-          <input
-            name="phoneNo"
-            value={user.phoneNo || ""}
-            onChange={handleInputChange}
-            className={errors.phoneNo ? "error" : ""}
-          />
-          {errors.phoneNo && (
-            <span className="error-text">{errors.phoneNo}</span>
-          )}
-        </div>
+        <label>Phone</label>
+        <input
+          name="phoneNo"
+          value={user.phoneNo || ""}
+          onChange={handleInputChange}
+          className={errors.phoneNo ? "error" : ""}
+        />
+        {errors.phoneNo && <span className="error-text">{errors.phoneNo}</span>}
 
-        <div className="section">
-          <h4>Address</h4>
-          <textarea
-            name="address"
-            value={user.address || ""}
-            onChange={handleInputChange}
-            className={errors.address ? "error" : ""}
-          />
-          {errors.address && (
-            <span className="error-text">{errors.address}</span>
-          )}
-        </div>
+        <h4>Address</h4>
+        <textarea
+          name="address"
+          value={user.address || ""}
+          onChange={handleInputChange}
+          className={errors.address ? "error" : ""}
+        />
+        {errors.address && <span className="error-text">{errors.address}</span>}
 
         <div className="actions">
           <button type="submit" disabled={isSaving}>
