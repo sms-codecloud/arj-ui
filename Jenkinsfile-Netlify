@@ -3,6 +3,11 @@ pipeline {
   agent { label 'win-agent-1' }
   options { timestamps(); ansiColor('xterm'); disableConcurrentBuilds() }
 
+  parameters {
+    string(name: 'UI_SUBDIR', defaultValue: '.', description: 'UI folder (e.g. "." or "web")')
+  }
+
+
   environment {
     NODE_ENV         = 'production'
     NPM_CONFIG_CACHE = 'C:\\npm-cache'
@@ -34,29 +39,29 @@ pipeline {
 
     stage('Install deps') {
       steps {
-        powershell '''
-          $ErrorActionPreference = "Stop"
-          if (Test-Path package-lock.json) {
-            npm ci --no-audit --no-fund
-          } else {
-            npm i --no-audit --no-fund
-          }
-        '''
+        dir(params.UI_SUBDIR) {
+          powershell '''
+            $ErrorActionPreference = "Stop"
+            if (-not (Test-Path package.json)) { throw "package.json not found in $(Get-Location)" }
+            if (Test-Path package-lock.json) { npm ci --no-audit --no-fund } else { npm i --no-audit --no-fund }
+            npx --yes vite --version
+          '''
+        }
       }
     }
 
-    stage('Build') {
-      steps {
+  stage('Build') {
+    steps {
+      dir(params.UI_SUBDIR) {
         powershell '''
           $ErrorActionPreference = "Stop"
           npm run build
-
-          $outDir = if (Test-Path "$env:WORKSPACE\\dist") { "dist" } elseif (Test-Path "$env:WORKSPACE\\build") { "build" } else { "" }
-          if (-not $outDir) { throw "No build output found. Expected 'dist' or 'build'." }
-          Set-Content -NoNewline -Path "$env:WORKSPACE\\.builddir" -Value $outDir
+          if (-not (Test-Path dist)) { throw "No build output found (dist/ missing)" }
+          Set-Content -NoNewline "$env:WORKSPACE\\.builddir" 'dist'
         '''
       }
     }
+  }
 
     stage('Adopt detected build dir') {
       steps {
@@ -67,40 +72,25 @@ pipeline {
       }
     }
 
-    stage('Deploy to Netlify (via npx)') {
-      steps {
-        withCredentials([
-          string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
-          string(credentialsId: 'netlify-site-id', variable: 'NETLIFY_SITE_ID')
-        ]) {
+    stage('Deploy to Netlify') {
+    steps {
+      withCredentials([
+        string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
+        string(credentialsId: 'netlify-site-id', variable: 'NETLIFY_SITE_ID')
+      ]) {
+        dir(params.UI_SUBDIR) {
           powershell '''
             $ErrorActionPreference = "Stop"
-            $dir = Join-Path $env:WORKSPACE $env:BUILD_DIR
-            if (-not (Test-Path $dir)) { throw "Build output folder '$dir' not found" }
-
-            # Determine branch name (for freestyle jobs)
-            $branch = $env:BRANCH_NAME
-            if ([string]::IsNullOrEmpty($branch)) { $branch = (git rev-parse --abbrev-ref HEAD).Trim() }
+            $dir = Resolve-Path ./dist
+            $branch = $env:BRANCH_NAME; if ([string]::IsNullOrEmpty($branch)) { $branch = (git rev-parse --abbrev-ref HEAD).Trim() }
             $isMain = ($branch -eq "main" -or $branch -eq "master")
             $msg    = "Jenkins #$env:BUILD_NUMBER ($branch @ $env:GIT_COMMIT)"
-
-            # Always use npx so PATH/global installs are irrelevant
             if ($isMain) {
-              $out = npx --yes netlify-cli@latest deploy --dir "$dir" --prod `
-                    --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+              $out = npx --yes netlify-cli@latest deploy --dir "$dir" --prod --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
             } else {
-              $out = npx --yes netlify-cli@latest deploy --dir "$dir" `
-                    --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+              $out = npx --yes netlify-cli@latest deploy --dir "$dir"         --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
             }
-
             $out | Write-Host
-
-            # Best-effort URL extraction
-            $prodUrl    = ($out | Select-String -Pattern 'Website URL:\\s*(https?://\\S+)' -AllMatches).Matches.Value | ForEach-Object { $_ -replace 'Website URL:\\s*','' }
-            $previewUrl = ($out | Select-String -Pattern 'Draft URL:\\s*(https?://\\S+)'   -AllMatches).Matches.Value | ForEach-Object { $_ -replace 'Draft URL:\\s*','' }
-
-            if ($prodUrl)    { Write-Host "✅ Production URL: $prodUrl" }
-            if ($previewUrl) { Write-Host "🔎 Preview URL:    $previewUrl" }
           '''
         }
       }
