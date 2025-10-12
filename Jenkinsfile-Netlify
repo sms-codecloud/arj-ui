@@ -130,7 +130,13 @@ pipeline {
       echo "✅ Build & Netlify deploy completed. Folder: ${BUILD_DIR}"
       archiveArtifacts artifacts: "${params.UI_SUBDIR}/${BUILD_DIR}/**", fingerprint: false, onlyIfSuccessful: true
     }
-    failure { echo '❌ Deployment failed.' }
-    always  { cleanWs(deleteDirs: true, patterns: [[pattern: '**/node_modules/**', type: 'INCLUDE']]) }
+    failure {
+      echo '❌ Deployment failed.'
+    }
+    // Runs after success/failure blocks
+    cleanup {
+      cleanWs(deleteDirs: true, patterns: [[pattern: '**/node_modules/**', type: 'INCLUDE']])
+    }
   }
+
 }
