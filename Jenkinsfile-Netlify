@@ -1,21 +1,21 @@
-// Jenkinsfile — React → Netlify (Windows)
-pipeline {                                           // {
+// Jenkinsfile — React + Vite → Netlify (Windows)
+pipeline {
   agent { label 'win-agent-1' }
   options { timestamps(); ansiColor('xterm'); disableConcurrentBuilds() }
 
   parameters {
-    string(name: 'UI_SUBDIR', defaultValue: '.', description: 'UI folder (e.g. "." or "web")')
+    string(name: 'UI_SUBDIR', defaultValue: '.', description: 'Path to UI folder (e.g. "." or "web")')
   }
 
   environment {
-    NODE_ENV         = 'production'
+    // Do NOT set NODE_ENV=production globally or devDeps (vite) won’t install
     NPM_CONFIG_CACHE = 'C:\\npm-cache'
-    BUILD_DIR        = 'build' // overwritten to dist if detected
+    BUILD_DIR        = 'dist'
   }
 
-  stages {                                           // {
-    stage('Prepare & Checkout') {                    // {
-      steps {                                        // {
+  stages {
+    stage('Checkout') {
+      steps {
         deleteDir()
         checkout scm
         powershell '''
@@ -23,10 +23,10 @@ pipeline {                                           // {
           git --version
           git log -1 --pretty=format:"Commit: %H%nAuthor: %an <%ae>%nDate:   %ad%nMsg:    %s" | Write-Host
         '''
-      }                                              // } steps
-    }                                                // } stage
+      }
+    }
 
-    stage('Node setup') {                            // {
+    stage('Node versions') {
       steps {
         powershell '''
           $ErrorActionPreference = "Stop"
@@ -34,22 +34,25 @@ pipeline {                                           // {
           npm  -v
         '''
       }
-    }                                                // } stage
-
-    stage('Install deps') {
-    steps {
-      powershell '''
-        $ErrorActionPreference = "Stop"
-        if (Test-Path package-lock.json) {
-          npm ci --no-audit --no-fund --include=dev
-        } else {
-          npm i  --no-audit --no-fund --include=dev
-        }
-        npx --yes vite --version
-      '''
     }
-}
-                                           // } stage
+
+    stage('Install deps (include dev)') {
+      steps {
+        dir(params.UI_SUBDIR) {
+          // Force devDependencies so vite is present even if NODE_ENV is set elsewhere
+          powershell '''
+            $ErrorActionPreference = "Stop"
+            if (-not (Test-Path package.json)) { throw "package.json not found in $(Get-Location)" }
+            if (Test-Path package-lock.json) {
+              npm ci --no-audit --no-fund --include=dev
+            } else {
+              npm i  --no-audit --no-fund --include=dev
+            }
+            npx --yes vite --version
+          '''
+        }
+      }
+    }
 
     stage('Build') {
       steps {
@@ -63,33 +66,30 @@ pipeline {                                           // {
               elseif (Test-Path build) { $out = 'build' }
               else { throw "No build output found. Expected 'dist' or 'build'." }
 
-              # Write .builddir safely (force replace if exists)
+              # Write .builddir safely
               $file = Join-Path $env:WORKSPACE '.builddir'
               try { Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue } catch {}
               [System.IO.File]::WriteAllText($file, $out)
 
-              # Also echo for Jenkins to capture
               $out
             ''').trim()
-
             env.BUILD_DIR = outDir
             echo "Using BUILD_DIR=${env.BUILD_DIR}"
           }
         }
       }
     }
-                                     // } stage
 
-    stage('Adopt detected build dir') {              // {
+    stage('(Optional) Lint') {
+      when { expression { return false } } // flip to true if you want linting to run
       steps {
-        script {
-          env.BUILD_DIR = readFile('.builddir').trim()
-          echo "Using BUILD_DIR=${env.BUILD_DIR}"
+        dir(params.UI_SUBDIR) {
+          powershell 'npm run lint'
         }
       }
-    }                                                // } stage
+    }
 
-    stage('Deploy to Netlify (via npx)') {
+    stage('Deploy to Netlify') {
       steps {
         withCredentials([
           string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
@@ -108,26 +108,30 @@ pipeline {                                           // {
 
               if ($isMain) {
                 $out = npx --yes netlify-cli@latest deploy --dir "$dir" --prod `
-                      --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+                        --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
               } else {
                 $out = npx --yes netlify-cli@latest deploy --dir "$dir" `
-                      --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+                        --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
               }
               $out | Write-Host
+
+              $prodUrl    = ($out | Select-String -Pattern 'Website URL:\\s*(https?://\\S+)' -AllMatches).Matches.Value | ForEach-Object { $_ -replace 'Website URL:\\s*','' }
+              $previewUrl = ($out | Select-String -Pattern 'Draft URL:\\s*(https?://\\S+)'   -AllMatches).Matches.Value | ForEach-Object { $_ -replace 'Draft URL:\\s*','' }
+              if ($prodUrl)    { Write-Host "✅ Production URL: $prodUrl" }
+              if ($previewUrl) { Write-Host "🔎 Preview URL:    $previewUrl" }
             '''
           }
         }
       }
     }
-                                              // } stage
-  }                                                  // } stages
+  }
 
-  post {                                             // {
+  post {
     success {
       echo "✅ Build & Netlify deploy completed. Folder: ${BUILD_DIR}"
       archiveArtifacts artifacts: "${params.UI_SUBDIR}/${BUILD_DIR}/**", fingerprint: false, onlyIfSuccessful: true
     }
     failure { echo '❌ Deployment failed.' }
     always  { cleanWs(deleteDirs: true, patterns: [[pattern: '**/node_modules/**', type: 'INCLUDE']]) }
-  }                                                  // } post
-}                                                    // } pipeline
+  }
+}
