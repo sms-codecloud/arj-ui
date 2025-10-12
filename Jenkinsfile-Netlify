@@ -80,6 +80,16 @@ pipeline {
       }
     }
 
+    stage('Compute artifact path') {
+      steps {
+        script {
+          // if UI_SUBDIR == '.', prefix is empty; else 'web/' etc.
+          env.UI_PREFIX = (params.UI_SUBDIR?.trim() && params.UI_SUBDIR.trim() != '.') ? "${params.UI_SUBDIR.trim()}/" : ""
+          echo "Artifact prefix = '${env.UI_PREFIX}' ; BUILD_DIR = '${env.BUILD_DIR}'"
+        }
+      }
+    }
+
     stage('(Optional) Lint') {
       when { expression { return false } } // flip to true if you want linting to run
       steps {
@@ -123,20 +133,41 @@ pipeline {
       }
     }
 
+    stage('List build output (diagnostic)') {
+      steps {
+        dir(params.UI_SUBDIR) {
+          powershell '''
+            $ErrorActionPreference = "Stop"
+            Write-Host "Contents of $(Get-Location):"
+            Get-ChildItem -Force
+            if (Test-Path "$env:BUILD_DIR") {
+              Write-Host "---- $env:BUILD_DIR tree ----"
+              Get-ChildItem -Recurse -Force "$env:BUILD_DIR"
+            } else {
+              Write-Host "Build dir not found: $env:BUILD_DIR"
+              exit 1
+            }
+          '''
+        }
+      }
+    }
+
+
   }
 
   post {
     success {
       echo "✅ Build & Netlify deploy completed. Folder: ${BUILD_DIR}"
-      archiveArtifacts artifacts: "${params.UI_SUBDIR}/${BUILD_DIR}/**", fingerprint: false, onlyIfSuccessful: true
+      // NO leading './' — always workspace-relative and Unix-style slashes
+      archiveArtifacts artifacts: "${env.UI_PREFIX}${env.BUILD_DIR}/**", fingerprint: false, onlyIfSuccessful: true
     }
     failure {
       echo '❌ Deployment failed.'
     }
-    // Runs after success/failure blocks
     cleanup {
       cleanWs(deleteDirs: true, patterns: [[pattern: '**/node_modules/**', type: 'INCLUDE']])
     }
   }
+
 
 }
