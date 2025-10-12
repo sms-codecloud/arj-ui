@@ -89,7 +89,7 @@ pipeline {
       }
     }
 
-    stage('Deploy to Netlify') {
+    stage('Netlify preflight') {
       steps {
         withCredentials([
           string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
@@ -98,32 +98,31 @@ pipeline {
           dir(params.UI_SUBDIR) {
             powershell '''
               $ErrorActionPreference = "Stop"
-              $dir = Resolve-Path "./$env:BUILD_DIR"
-              if (-not (Test-Path $dir)) { throw "Build output '$dir' not found" }
 
-              $branch = $env:BRANCH_NAME
-              if ([string]::IsNullOrEmpty($branch)) { $branch = (git rev-parse --abbrev-ref HEAD).Trim() }
-              $isMain = ($branch -eq "main" -or $branch -eq "master")
-              $msg    = "Jenkins #$env:BUILD_NUMBER ($branch @ $env:GIT_COMMIT)"
+              # Show CLI & confirm we're authenticated with the token provided
+              npx --yes netlify-cli@latest --version
 
-              if ($isMain) {
-                $out = npx --yes netlify-cli@latest deploy --dir "$dir" --prod `
-                        --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
-              } else {
-                $out = npx --yes netlify-cli@latest deploy --dir "$dir" `
-                        --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+              Write-Host "🔐 Checking Netlify auth with provided token..."
+              $status = npx --yes netlify-cli@latest status --auth "$env:NETLIFY_AUTH_TOKEN"
+              $status | Write-Host
+
+              # List sites we can access with this token and ensure the target site is visible
+              Write-Host "📄 Listing accessible sites..."
+              $sites = npx --yes netlify-cli@latest sites:list --json 2>$null
+              if (-not $sites) { throw "Token is valid but no sites are visible with this token." }
+
+              $parsed = $sites | ConvertFrom-Json
+              $match  = $parsed | Where-Object { $_.id -eq $env:NETLIFY_SITE_ID }
+              if (-not $match) {
+                throw "The token does not have access to site id: $env:NETLIFY_SITE_ID. Re-check Site ID or use a Site Deploy Token for that site."
               }
-              $out | Write-Host
-
-              $prodUrl    = ($out | Select-String -Pattern 'Website URL:\\s*(https?://\\S+)' -AllMatches).Matches.Value | ForEach-Object { $_ -replace 'Website URL:\\s*','' }
-              $previewUrl = ($out | Select-String -Pattern 'Draft URL:\\s*(https?://\\S+)'   -AllMatches).Matches.Value | ForEach-Object { $_ -replace 'Draft URL:\\s*','' }
-              if ($prodUrl)    { Write-Host "✅ Production URL: $prodUrl" }
-              if ($previewUrl) { Write-Host "🔎 Preview URL:    $previewUrl" }
+              Write-Host "✅ Token can access site: $($match.name) ($($match.id))"
             '''
           }
         }
       }
     }
+
   }
 
   post {
