@@ -1,5 +1,5 @@
-// Jenkinsfile — React → Netlify (Windows agent)
-pipeline {
+// Jenkinsfile — React → Netlify (Windows)
+pipeline {                                           // {
   agent { label 'win-agent-1' }
   options { timestamps(); ansiColor('xterm'); disableConcurrentBuilds() }
 
@@ -7,16 +7,15 @@ pipeline {
     string(name: 'UI_SUBDIR', defaultValue: '.', description: 'UI folder (e.g. "." or "web")')
   }
 
-
   environment {
     NODE_ENV         = 'production'
     NPM_CONFIG_CACHE = 'C:\\npm-cache'
-    BUILD_DIR        = 'build' // will be overwritten to dist if detected
+    BUILD_DIR        = 'build' // overwritten to dist if detected
   }
 
-  stages {
-    stage('Prepare & Checkout (latest from GitHub)') {
-      steps {
+  stages {                                           // {
+    stage('Prepare & Checkout') {                    // {
+      steps {                                        // {
         deleteDir()
         checkout scm
         powershell '''
@@ -24,89 +23,97 @@ pipeline {
           git --version
           git log -1 --pretty=format:"Commit: %H%nAuthor: %an <%ae>%nDate:   %ad%nMsg:    %s" | Write-Host
         '''
-      }
-    }
+      }                                              // } steps
+    }                                                // } stage
 
-    stage('Node setup') {
+    stage('Node setup') {                            // {
       steps {
         powershell '''
           $ErrorActionPreference = "Stop"
           node -v
-          npm -v
+          npm  -v
         '''
       }
-    }
+    }                                                // } stage
 
-    stage('Install deps') {
+    stage('Install deps') {                          // {
       steps {
         dir(params.UI_SUBDIR) {
           powershell '''
             $ErrorActionPreference = "Stop"
-            if (-not (Test-Path package.json)) { throw "package.json not found in $(Get-Location)" }
+            if (-not (Test-Path "package.json")) {
+              throw "package.json not found in $(Get-Location). Set UI_SUBDIR correctly."
+            }
             if (Test-Path package-lock.json) { npm ci --no-audit --no-fund } else { npm i --no-audit --no-fund }
             npx --yes vite --version
           '''
         }
       }
-    }
+    }                                                // } stage
 
-  stage('Build') {
-    steps {
-      dir(params.UI_SUBDIR) {
-        powershell '''
-          $ErrorActionPreference = "Stop"
-          npm run build
-          if (-not (Test-Path dist)) { throw "No build output found (dist/ missing)" }
-          Set-Content -NoNewline "$env:WORKSPACE\\.builddir" 'dist'
-        '''
+    stage('Build') {                                 // {
+      steps {
+        dir(params.UI_SUBDIR) {
+          powershell '''
+            $ErrorActionPreference = "Stop"
+            npm run build
+            if (Test-Path dist) { $out='dist' }
+            elseif (Test-Path build) { $out='build' }
+            else { throw "No build output found. Expected 'dist' or 'build'." }
+            Set-Content -NoNewline "$env:WORKSPACE\\.builddir" $out
+          '''
+        }
       }
-    }
-  }
+    }                                                // } stage
 
-    stage('Adopt detected build dir') {
+    stage('Adopt detected build dir') {              // {
       steps {
         script {
           env.BUILD_DIR = readFile('.builddir').trim()
           echo "Using BUILD_DIR=${env.BUILD_DIR}"
         }
       }
-    }
+    }                                                // } stage
 
-    stage('Deploy to Netlify') {
-    steps {
-      withCredentials([
-        string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
-        string(credentialsId: 'netlify-site-id', variable: 'NETLIFY_SITE_ID')
-      ]) {
-        dir(params.UI_SUBDIR) {
-          powershell '''
-            $ErrorActionPreference = "Stop"
-            $dir = Resolve-Path ./dist
-            $branch = $env:BRANCH_NAME; if ([string]::IsNullOrEmpty($branch)) { $branch = (git rev-parse --abbrev-ref HEAD).Trim() }
-            $isMain = ($branch -eq "main" -or $branch -eq "master")
-            $msg    = "Jenkins #$env:BUILD_NUMBER ($branch @ $env:GIT_COMMIT)"
-            if ($isMain) {
-              $out = npx --yes netlify-cli@latest deploy --dir "$dir" --prod --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
-            } else {
-              $out = npx --yes netlify-cli@latest deploy --dir "$dir"         --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
-            }
-            $out | Write-Host
-          '''
+    stage('Deploy to Netlify (via npx)') {           // {
+      steps {
+        withCredentials([
+          string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
+          string(credentialsId: 'netlify-site-id', variable: 'NETLIFY_SITE_ID')
+        ]) {
+          dir(params.UI_SUBDIR) {
+            powershell '''
+              $ErrorActionPreference = "Stop"
+              $dir = Resolve-Path ./${env:BUILD_DIR}
+              if (-not (Test-Path $dir)) { throw "Build output '$dir' not found" }
+
+              $branch = $env:BRANCH_NAME
+              if ([string]::IsNullOrEmpty($branch)) { $branch = (git rev-parse --abbrev-ref HEAD).Trim() }
+              $isMain = ($branch -eq "main" -or $branch -eq "master")
+              $msg    = "Jenkins #$env:BUILD_NUMBER ($branch @ $env:GIT_COMMIT)"
+
+              if ($isMain) {
+                $out = npx --yes netlify-cli@latest deploy --dir "$dir" --prod `
+                      --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+              } else {
+                $out = npx --yes netlify-cli@latest deploy --dir "$dir" `
+                      --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+              }
+
+              $out | Write-Host
+            '''
+          }
         }
       }
-    }
-  }
+    }                                                // } stage
+  }                                                  // } stages
 
-  post {
+  post {                                             // {
     success {
       echo "✅ Build & Netlify deploy completed. Folder: ${BUILD_DIR}"
-      archiveArtifacts artifacts: "${BUILD_DIR}/**", fingerprint: false, onlyIfSuccessful: true
+      archiveArtifacts artifacts: "${params.UI_SUBDIR}/${BUILD_DIR}/**", fingerprint: false, onlyIfSuccessful: true
     }
-    failure {
-      echo '❌ Deployment failed.'
-    }
-    always {
-      cleanWs(deleteDirs: true, patterns: [[pattern: '**/node_modules/**', type: 'INCLUDE']])
-    }
-  }
-}
+    failure { echo '❌ Deployment failed.' }
+    always  { cleanWs(deleteDirs: true, patterns: [[pattern: '**/node_modules/**', type: 'INCLUDE']]) }
+  }                                                  // } post
+}                                                    // } pipeline
