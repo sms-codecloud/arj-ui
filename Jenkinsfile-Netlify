@@ -1,22 +1,19 @@
 // Jenkinsfile — React → Netlify (Windows agent)
 pipeline {
-  agent { label 'win-agent-1' } // change if your agent label differs
+  agent { label 'win-agent-1' }
   options { timestamps(); ansiColor('xterm'); disableConcurrentBuilds() }
-  // tools { nodejs 'Node22' } // uncomment if you manage Node in Jenkins tools
 
   environment {
     NODE_ENV         = 'production'
     NPM_CONFIG_CACHE = 'C:\\npm-cache'
-    BUILD_DIR        = 'build' // will be auto-updated to 'dist' if Vite is detected
+    BUILD_DIR        = 'build' // will be overwritten to dist if detected
   }
 
   stages {
     stage('Prepare & Checkout (latest from GitHub)') {
       steps {
-        // ensure a clean slate, then pull whatever repo/branch this job is configured with
         deleteDir()
         checkout scm
-        // show what we actually built
         powershell '''
           $ErrorActionPreference = "Stop"
           git --version
@@ -31,16 +28,6 @@ pipeline {
           $ErrorActionPreference = "Stop"
           node -v
           npm -v
-        '''
-      }
-    }
-
-    stage('Install Netlify CLI') {
-      steps {
-        powershell '''
-          $ErrorActionPreference = "Stop"
-         npm install -g netlify-cli
-         netlify --version
         '''
       }
     }
@@ -62,14 +49,10 @@ pipeline {
       steps {
         powershell '''
           $ErrorActionPreference = "Stop"
-          # Build (Vite/CRA both use "build" script)
           npm run build
 
-          # Detect output: prefer Vite's "dist" if present, else CRA's "build"
           $outDir = if (Test-Path "$env:WORKSPACE\\dist") { "dist" } elseif (Test-Path "$env:WORKSPACE\\build") { "build" } else { "" }
           if (-not $outDir) { throw "No build output found. Expected 'dist' or 'build'." }
-
-          # Persist decision for later stages
           Set-Content -NoNewline -Path "$env:WORKSPACE\\.builddir" -Value $outDir
         '''
       }
@@ -84,7 +67,7 @@ pipeline {
       }
     }
 
-    stage('Deploy to Netlify') {
+    stage('Deploy to Netlify (via npx)') {
       steps {
         withCredentials([
           string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
@@ -93,24 +76,26 @@ pipeline {
           powershell '''
             $ErrorActionPreference = "Stop"
             $dir = Join-Path $env:WORKSPACE $env:BUILD_DIR
-
             if (-not (Test-Path $dir)) { throw "Build output folder '$dir' not found" }
 
-            # Decide preview vs prod
+            # Determine branch name (for freestyle jobs)
             $branch = $env:BRANCH_NAME
-            if ([string]::IsNullOrEmpty($branch)) { $branch = (git rev-parse --abbrev-ref HEAD) } # freestyle safety
+            if ([string]::IsNullOrEmpty($branch)) { $branch = (git rev-parse --abbrev-ref HEAD).Trim() }
             $isMain = ($branch -eq "main" -or $branch -eq "master")
             $msg    = "Jenkins #$env:BUILD_NUMBER ($branch @ $env:GIT_COMMIT)"
 
+            # Always use npx so PATH/global installs are irrelevant
             if ($isMain) {
-              $out = netlify deploy --dir "$dir" --prod --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+              $out = npx --yes netlify-cli@latest deploy --dir "$dir" --prod `
+                    --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
             } else {
-              $out = netlify deploy --dir "$dir" --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
+              $out = npx --yes netlify-cli@latest deploy --dir "$dir" `
+                    --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
             }
 
             $out | Write-Host
 
-            # Extract URLs (best-effort)
+            # Best-effort URL extraction
             $prodUrl    = ($out | Select-String -Pattern 'Website URL:\\s*(https?://\\S+)' -AllMatches).Matches.Value | ForEach-Object { $_ -replace 'Website URL:\\s*','' }
             $previewUrl = ($out | Select-String -Pattern 'Draft URL:\\s*(https?://\\S+)'   -AllMatches).Matches.Value | ForEach-Object { $_ -replace 'Draft URL:\\s*','' }
 
@@ -131,7 +116,6 @@ pipeline {
       echo '❌ Deployment failed.'
     }
     always {
-      // keep workspace tidy between runs
       cleanWs(deleteDirs: true, patterns: [[pattern: '**/node_modules/**', type: 'INCLUDE']])
     }
   }
