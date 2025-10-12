@@ -36,20 +36,20 @@ pipeline {                                           // {
       }
     }                                                // } stage
 
-    stage('Install deps') {                          // {
-      steps {
-        dir(params.UI_SUBDIR) {
-          powershell '''
-            $ErrorActionPreference = "Stop"
-            if (-not (Test-Path "package.json")) {
-              throw "package.json not found in $(Get-Location). Set UI_SUBDIR correctly."
-            }
-            if (Test-Path package-lock.json) { npm ci --no-audit --no-fund } else { npm i --no-audit --no-fund }
-            npx --yes vite --version
-          '''
+    stage('Install deps') {
+    steps {
+      powershell '''
+        $ErrorActionPreference = "Stop"
+        if (Test-Path package-lock.json) {
+          npm ci --no-audit --no-fund --include=dev
+        } else {
+          npm i  --no-audit --no-fund --include=dev
         }
-      }
-    }                                                // } stage
+        npx --yes vite --version
+      '''
+    }
+}
+                                           // } stage
 
     stage('Build') {                                 // {
       steps {
