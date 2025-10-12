@@ -51,20 +51,34 @@ pipeline {                                           // {
 }
                                            // } stage
 
-    stage('Build') {                                 // {
+    stage('Build') {
       steps {
         dir(params.UI_SUBDIR) {
-          powershell '''
-            $ErrorActionPreference = "Stop"
-            npm run build
-            if (Test-Path dist) { $out='dist' }
-            elseif (Test-Path build) { $out='build' }
-            else { throw "No build output found. Expected 'dist' or 'build'." }
-            Set-Content -NoNewline "$env:WORKSPACE\\.builddir" $out
-          '''
+          script {
+            def outDir = powershell(returnStdout: true, script: '''
+              $ErrorActionPreference = "Stop"
+              npm run build | Write-Host
+
+              if (Test-Path dist)      { $out = 'dist' }
+              elseif (Test-Path build) { $out = 'build' }
+              else { throw "No build output found. Expected 'dist' or 'build'." }
+
+              # Write .builddir safely (force replace if exists)
+              $file = Join-Path $env:WORKSPACE '.builddir'
+              try { Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue } catch {}
+              [System.IO.File]::WriteAllText($file, $out)
+
+              # Also echo for Jenkins to capture
+              $out
+            ''').trim()
+
+            env.BUILD_DIR = outDir
+            echo "Using BUILD_DIR=${env.BUILD_DIR}"
+          }
         }
       }
-    }                                                // } stage
+    }
+                                     // } stage
 
     stage('Adopt detected build dir') {              // {
       steps {
@@ -75,7 +89,7 @@ pipeline {                                           // {
       }
     }                                                // } stage
 
-    stage('Deploy to Netlify (via npx)') {           // {
+    stage('Deploy to Netlify (via npx)') {
       steps {
         withCredentials([
           string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
@@ -84,7 +98,7 @@ pipeline {                                           // {
           dir(params.UI_SUBDIR) {
             powershell '''
               $ErrorActionPreference = "Stop"
-              $dir = Resolve-Path ./${env:BUILD_DIR}
+              $dir = Resolve-Path "./$env:BUILD_DIR"
               if (-not (Test-Path $dir)) { throw "Build output '$dir' not found" }
 
               $branch = $env:BRANCH_NAME
@@ -99,13 +113,13 @@ pipeline {                                           // {
                 $out = npx --yes netlify-cli@latest deploy --dir "$dir" `
                       --site "$env:NETLIFY_SITE_ID" --auth "$env:NETLIFY_AUTH_TOKEN" --message "$msg"
               }
-
               $out | Write-Host
             '''
           }
         }
       }
-    }                                                // } stage
+    }
+                                              // } stage
   }                                                  // } stages
 
   post {                                             // {
