@@ -99,7 +99,7 @@ pipeline {
       }
     }
 
-    stage('Netlify preflight') {
+    stage('Netlify Publish (Production)') {
       steps {
         withCredentials([
           string(credentialsId: 'netlify-token',   variable: 'NETLIFY_AUTH_TOKEN'),
@@ -109,24 +109,30 @@ pipeline {
             powershell '''
               $ErrorActionPreference = "Stop"
 
-              # Show CLI & confirm we're authenticated with the token provided
-              npx --yes netlify-cli@latest --version
+              # sanity: show CLI + whoami on Netlify
+              npx --yes netlify-cli@latest --version | Write-Host
+              npx --yes netlify-cli@latest status --auth "$env:NETLIFY_AUTH_TOKEN" | Write-Host
 
-              Write-Host "🔐 Checking Netlify auth with provided token..."
-              $status = npx --yes netlify-cli@latest status --auth "$env:NETLIFY_AUTH_TOKEN"
-              $status | Write-Host
-
-              # List sites we can access with this token and ensure the target site is visible
-              Write-Host "📄 Listing accessible sites..."
-              $sites = npx --yes netlify-cli@latest sites:list --json 2>$null
-              if (-not $sites) { throw "Token is valid but no sites are visible with this token." }
-
-              $parsed = $sites | ConvertFrom-Json
-              $match  = $parsed | Where-Object { $_.id -eq $env:NETLIFY_SITE_ID }
-              if (-not $match) {
-                throw "The token does not have access to site id: $env:NETLIFY_SITE_ID. Re-check Site ID or use a Site Deploy Token for that site."
+              if (-not (Test-Path "$env:BUILD_DIR")) {
+                throw "Build output not found at '$env:BUILD_DIR' (cwd: $(Get-Location))"
               }
-              Write-Host "✅ Token can access site: $($match.name) ($($match.id))"
+
+              # 👉 Production deploy to the correct site, using token + site id explicitly
+              $msg = "Jenkins ${env:BUILD_TAG} ${env:GIT_COMMIT}"
+              Write-Host "Deploying '$env:BUILD_DIR' to Netlify Production..."
+              npx --yes netlify-cli@latest deploy `
+                --dir "$env:BUILD_DIR" `
+                --prod `
+                --auth "$env:NETLIFY_AUTH_TOKEN" `
+                --site "$env:NETLIFY_SITE_ID" `
+                --message "$msg" `
+                --json | Tee-Object -Variable deployJson | Write-Host
+
+              # simple confirmation + fail fast if Netlify returned an error code but CLI didn't
+              try { $parsed = $deployJson | ConvertFrom-Json } catch { $parsed = $null }
+              if ($parsed -and $parsed.state -and $parsed.state -ne 'ready') {
+                throw "Netlify deploy did not reach 'ready' state. State: $($parsed.state)"
+              }
             '''
           }
         }
