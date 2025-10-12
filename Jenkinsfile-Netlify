@@ -8,7 +8,7 @@ pipeline {
   }
 
   environment {
-    // Do NOT set NODE_ENV=production globally or devDeps (vite) won’t install
+    // don't set NODE_ENV=production globally (keeps dev deps like vite)
     NPM_CONFIG_CACHE = 'C:\\npm-cache'
     BUILD_DIR        = 'dist'
   }
@@ -39,7 +39,6 @@ pipeline {
     stage('Install deps (include dev)') {
       steps {
         dir(params.UI_SUBDIR) {
-          // Force devDependencies so vite is present even if NODE_ENV is set elsewhere
           powershell '''
             $ErrorActionPreference = "Stop"
             if (-not (Test-Path package.json)) { throw "package.json not found in $(Get-Location)" }
@@ -66,11 +65,10 @@ pipeline {
               elseif (Test-Path build) { $out = 'build' }
               else { throw "No build output found. Expected 'dist' or 'build'." }
 
-              # Write .builddir safely
+              # Persist for later stages
               $file = Join-Path $env:WORKSPACE '.builddir'
               try { Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue } catch {}
               [System.IO.File]::WriteAllText($file, $out)
-
               $out
             ''').trim()
             env.BUILD_DIR = outDir
@@ -83,18 +81,8 @@ pipeline {
     stage('Compute artifact path') {
       steps {
         script {
-          // if UI_SUBDIR == '.', prefix is empty; else 'web/' etc.
           env.UI_PREFIX = (params.UI_SUBDIR?.trim() && params.UI_SUBDIR.trim() != '.') ? "${params.UI_SUBDIR.trim()}/" : ""
-          echo "Artifact prefix = '${env.UI_PREFIX}' ; BUILD_DIR = '${env.BUILD_DIR}'"
-        }
-      }
-    }
-
-    stage('(Optional) Lint') {
-      when { expression { return false } } // flip to true if you want linting to run
-      steps {
-        dir(params.UI_SUBDIR) {
-          powershell 'npm run lint'
+          echo "Artifact prefix='${env.UI_PREFIX}' ; BUILD_DIR='${env.BUILD_DIR}'"
         }
       }
     }
@@ -146,25 +134,18 @@ pipeline {
             $ErrorActionPreference = "Stop"
             Write-Host "Contents of $(Get-Location):"
             Get-ChildItem -Force
-            if (Test-Path "$env:BUILD_DIR") {
-              Write-Host "---- $env:BUILD_DIR tree ----"
-              Get-ChildItem -Recurse -Force "$env:BUILD_DIR"
-            } else {
-              Write-Host "Build dir not found: $env:BUILD_DIR"
-              exit 1
-            }
+            Write-Host "---- $env:BUILD_DIR tree ----"
+            Get-ChildItem -Recurse -Force "$env:BUILD_DIR"
           '''
         }
       }
     }
-
-
   }
 
   post {
     success {
       echo "✅ Build & Netlify deploy completed. Folder: ${BUILD_DIR}"
-      // NO leading './' — always workspace-relative and Unix-style slashes
+      // no leading "./"
       archiveArtifacts artifacts: "${env.UI_PREFIX}${env.BUILD_DIR}/**", fingerprint: false, onlyIfSuccessful: true
     }
     failure {
@@ -174,6 +155,4 @@ pipeline {
       cleanWs(deleteDirs: true, patterns: [[pattern: '**/node_modules/**', type: 'INCLUDE']])
     }
   }
-
-
 }

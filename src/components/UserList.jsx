@@ -30,7 +30,7 @@ const UsersList = () => {
   return (
     <section className="users-list-container">
       <div className="users-list-header">
-        <h2>Users List - Test Pipeline</h2>
+        <h2>Users List</h2>
         <button className="btn add-user-btn" onClick={handleAddUser}>
           Add User
         </button>
