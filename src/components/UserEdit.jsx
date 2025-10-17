@@ -99,6 +99,7 @@ const UserEdit = () => {
           name="phoneNo"
           value={user.phoneNo || ""}
           onChange={handleInputChange}
+          maxLength={10}
           className={errors.phoneNo ? "error" : ""}
         />
         {errors.phoneNo && <span className="error-text">{errors.phoneNo}</span>}

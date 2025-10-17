@@ -104,7 +104,7 @@ const AddUser = () => {
           className={errors.phoneNo ? "error" : ""}
           value={formData.phoneNo}
           onChange={handleInputChange}
-          max={10}
+          maxLength={10}
         />
         {errors.phoneNo && <span className="error-text">{errors.phoneNo}</span>}
 
