@@ -1,5 +1,9 @@
 export const BASE_URL = "https://arjwsilkal-001-site1.stempurl.com";
 
+export const PAGE_SIZE = 5;
+
+export const NO_RECORDS_FOUND = "No records found!";
+
 export const ERROR_MESSAGES = {
   firstName: {
     required: "First Name is required.",

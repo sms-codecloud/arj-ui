@@ -113,7 +113,7 @@ const UserEdit = () => {
         {errors.address && <span className="error-text">{errors.address}</span>}
 
         <div className="actions">
-          <button type="submit" disabled={isSaving}>
+          <button type="submit" className="user-btn" disabled={isSaving}>
             {isSaving ? "Saving..." : "Save"}
           </button>
 

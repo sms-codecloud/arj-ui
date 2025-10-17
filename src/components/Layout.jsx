@@ -18,7 +18,11 @@ const Layout = () => {
           onConfirm={confirm}
           onClose={closeConfirm}
         />
-        <ToastContainer position="top-center" />
+        <ToastContainer
+          position="top-center"
+          theme="dark"
+          closeButton={false}
+        />
         <Outlet />
       </div>
       <Footer />
