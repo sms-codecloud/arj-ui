@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { FaEye, FaEdit, FaTrash, FaGripLinesVertical } from "react-icons/fa";
 import { Link, useNavigate } from "react-router";
 import useUserInfo from "../context/userContext.jsx";
@@ -9,15 +9,30 @@ import Pagination from "./Pagination.jsx";
 
 const UsersList = () => {
   const [currentPage, setCurrentPage] = useState(0);
-
+  const navigate = useNavigate();
   const { userList, deleteUser, isLoading } = useUserInfo();
   const { openConfirm } = useModal();
-  const navigate = useNavigate();
 
-  const totalUsers = userList.length ?? 0;
-  const noOfPages = Math.ceil(totalUsers / PAGE_SIZE);
-  const start = currentPage * PAGE_SIZE;
-  const end = start + PAGE_SIZE;
+  const totalRecords = userList?.length ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalRecords / PAGE_SIZE)); // ensure at least 1 page
+  const startIndex = currentPage * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+
+  const currentData = useMemo(() => {
+    return userList.slice(startIndex, endIndex);
+  }, [userList, currentPage]);
+
+  // Adjust pagination when total pages change after delete
+  useEffect(() => {
+    const newTotalPages = Math.max(1, Math.ceil(userList.length / PAGE_SIZE));
+    if (currentPage >= newTotalPages) {
+      setCurrentPage(newTotalPages - 1);
+    }
+  }, [userList, currentPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   const handleDelete = (id) => {
     openConfirm("Are you sure you want to delete this user?", () => {
@@ -67,8 +82,8 @@ const UsersList = () => {
             </tr>
           </thead>
           <tbody>
-            {userList.length > 0 ? (
-              userList.slice(start, end).map((user) => (
+            {currentData.length > 0 ? (
+              currentData.map((user) => (
                 <tr key={user.employeeId}>
                   <td>{`${user.firstName} ${user.lastName}`}</td>
                   <td>{user.email}</td>
@@ -76,34 +91,25 @@ const UsersList = () => {
                   <td className="actions-cell">
                     <Link
                       to={`/user-details/${user.employeeId}`}
-                      aria-label={`View details of ${user.firstName} ${user.lastName}`}
                       className="action-icon view-icon"
                     >
                       <FaEye size={18} />
                     </Link>
 
-                    <FaGripLinesVertical
-                      className="divider-icon"
-                      aria-hidden="true"
-                    />
+                    <FaGripLinesVertical className="divider-icon" />
 
                     <Link
                       to={`/user-edit/${user.employeeId}`}
-                      aria-label={`Edit ${user.firstName} ${user.lastName}`}
                       className="action-icon edit-icon"
                     >
                       <FaEdit size={18} />
                     </Link>
 
-                    <FaGripLinesVertical
-                      className="divider-icon"
-                      aria-hidden="true"
-                    />
+                    <FaGripLinesVertical className="divider-icon" />
 
                     <FaTrash
                       onClick={() => handleDelete(user.employeeId)}
                       className="action-icon delete-icon"
-                      aria-label={`Delete ${user.firstName} ${user.lastName}`}
                       size={18}
                     />
                   </td>
@@ -120,12 +126,14 @@ const UsersList = () => {
         </table>
       </div>
 
-      {userList.length > 0 && (
+      {/* Pagination always visible if there's at least 1 record */}
+      {totalRecords > 0 && (
         <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          handlePageChange={handlePageChange}
           goToNextPage={goToNextPage}
           goToPreviousPage={goToPreviousPage}
-          currentPage={currentPage}
-          noOfPages={noOfPages}
         />
       )}
     </section>

@@ -1,29 +1,60 @@
-import React from "react";
-
 const Pagination = ({
+  currentPage,
+  totalPages,
+  handlePageChange,
   goToNextPage,
   goToPreviousPage,
-  currentPage,
-  noOfPages,
 }) => {
+  if (totalPages === 0) {
+    return null;
+  }
+
+  const pageNumbers = [];
+  for (let i = 0; i < totalPages; i++) {
+    if (
+      i === 0 ||
+      i === totalPages - 1 ||
+      (i >= currentPage - 1 && i <= currentPage + 1)
+    ) {
+      pageNumbers.push(i);
+    } else if (
+      (i === currentPage - 2 && i > 1) ||
+      (i === currentPage + 2 && i < totalPages - 2)
+    ) {
+      pageNumbers.push("ellipsis-" + i);
+    }
+  }
+
   return (
-    <div className="page-container">
+    <div className="pagination-container">
       <button
-        disabled={currentPage === 0}
-        onClick={() => goToPreviousPage()}
         className="page-btn"
+        onClick={() => goToPreviousPage()}
+        disabled={currentPage === 0}
       >
         &lt;
       </button>
 
-      <span className="page-info">
-        Page {currentPage + 1} of {noOfPages}
-      </span>
+      {pageNumbers.map((page, index) =>
+        typeof page === "string" ? (
+          <span key={index} className="page-ellipsis">
+            ...
+          </span>
+        ) : (
+          <button
+            key={page}
+            className={`page-btn ${page === currentPage ? "active" : ""}`}
+            onClick={() => handlePageChange(page)}
+          >
+            {page + 1}
+          </button>
+        )
+      )}
 
       <button
-        disabled={currentPage + 1 >= noOfPages}
-        onClick={() => goToNextPage()}
         className="page-btn"
+        onClick={() => goToNextPage()}
+        disabled={currentPage + 1 >= totalPages}
       >
         &gt;
       </button>
