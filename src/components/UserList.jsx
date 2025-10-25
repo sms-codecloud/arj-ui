@@ -63,7 +63,7 @@ const UsersList = () => {
   return (
     <section className="users-list-container">
       <div className="users-list-header">
-        <h2>Users List</h2>
+        <h2>ARJ Enrollment</h2>
         <button className="user-btn" onClick={handleAddUser}>
           Add User
         </button>

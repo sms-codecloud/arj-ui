@@ -7,6 +7,7 @@ import UsersList from "./components/UserList";
 import UserEdit from "./components/UserEdit";
 import Error from "./components/Error";
 import AddUser from "./components/AddUser";
+import GreetMessage from "./components/GreetMessage.jsx";
 
 function App() {
   const appRouter = createBrowserRouter([
@@ -19,6 +20,7 @@ function App() {
         { path: "user-details/:id", element: <UserDetails /> }, // /user details
         { path: "user-edit/:id", element: <UserEdit /> }, // /user eidt
         { path: "add-user", element: <AddUser /> }, // /user creation
+        { path: "greet", element: <GreetMessage/> }, // /greet
       ],
     },
   ]);
