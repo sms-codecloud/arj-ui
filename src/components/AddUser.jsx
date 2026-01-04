@@ -2,6 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { validateForm } from "../utils/validateForm.jsx";
 import useUserInfo from "../context/userContext.jsx";
+// import Button from "./controls/Button.jsx";
+// import InputText from "./controls/InputText.jsx";
+// import InputTextArea from "./controls/InputTextArea.jsx";
+
+import { Button, InputText, InputTextArea } from "./controls";
 
 const AddUser = () => {
   const navigate = useNavigate();
@@ -57,14 +62,16 @@ const AddUser = () => {
         <label htmlFor="firstName">
           First Name <span className="asterisk">*</span>
         </label>
-        <input
+
+        <InputText
           type="text"
-          name="firstName"
           id="firstName"
+          name="firstName"
           value={formData.firstName}
           className={errors.firstName ? "error" : ""}
           onChange={handleInputChange}
         />
+
         {errors.firstName && (
           <span className="error-text">{errors.firstName}</span>
         )}
@@ -72,7 +79,8 @@ const AddUser = () => {
         <label htmlFor="lastName">
           Last Name <span className="asterisk">*</span>
         </label>
-        <input
+        <InputText
+          type="text"
           name="lastName"
           id="lastName"
           value={formData.lastName}
@@ -86,7 +94,8 @@ const AddUser = () => {
         <label htmlFor="email">
           Email <span className="asterisk">*</span>
         </label>
-        <input
+        <InputText
+          type="text"
           name="email"
           id="email"
           className={errors.email ? "error" : ""}
@@ -98,7 +107,8 @@ const AddUser = () => {
         <label htmlFor="phoneNo">
           Phone <span className="asterisk">*</span>
         </label>
-        <input
+        <InputText
+          type="text"
           name="phoneNo"
           id="phoneNo"
           className={errors.phoneNo ? "error" : ""}
@@ -111,7 +121,7 @@ const AddUser = () => {
         <label htmlFor="address">
           Address <span className="asterisk">*</span>
         </label>
-        <textarea
+        <InputTextArea
           id="address"
           name="address"
           value={formData.address}
@@ -121,9 +131,12 @@ const AddUser = () => {
         {errors.address && <span className="error-text">{errors.address}</span>}
 
         <div className="actions">
-          <button type="submit" className="user-btn" disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save"}
-          </button>
+          <Button
+            text={isSaving ? "Saving..." : "Save"}
+            type="submit"
+            className="user-btn"
+            disabled={isSaving}
+          />
 
           <Link to="/" style={{ padding: "10px" }}>
             Back to List

@@ -6,7 +6,19 @@ const Header = () => {
     <header>
       <nav className="navbar">
         <p className="navbar-logo">React Application</p>
-        <p><Link to="/greet">Greet</Link></p>
+        <p>
+          <Link to="/" className="navbar-logo" style={{ marginRight: "10px" }}>
+            Home
+          </Link>
+
+          <Link
+            to="/greet"
+            className="navbar-logo"
+            style={{ marginRight: "10px" }}
+          >
+            Greet
+          </Link>
+        </p>
       </nav>
     </header>
   );
