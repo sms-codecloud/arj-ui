@@ -17,7 +17,7 @@ export const UserProvider = ({ children }) => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/api/EmployeeList`);
+      const response = await fetch(`${BASE_URL}/api/employee/employee-list`);
       if (!response.ok) {
         throw new Error(`Failed to fetch users. Status: ${response.status}`);
       }
@@ -35,7 +35,7 @@ export const UserProvider = ({ children }) => {
   // Get user by ID
   const getUserById = async (id) => {
     try {
-      const res = await fetch(`${BASE_URL}/api/EmployeeById/${id}`);
+      const res = await fetch(`${BASE_URL}/api/employee/single-employee/${id}`);
       if (!res.ok) {
         throw new Error(`User not found (status ${res.status})`);
       }
@@ -45,7 +45,7 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       console.error("Error fetching user by ID:", error);
       toast.error(
-        "Failed to fetch user details. Please refresh and try again."
+        "Failed to fetch user details. Please refresh and try again.",
       );
       return null;
     }
@@ -55,18 +55,18 @@ export const UserProvider = ({ children }) => {
   const updateUserById = async (data) => {
     try {
       const response = await fetch(
-        `${BASE_URL}/api/EmployeeUpdate/${data.employeeId}`,
+        `${BASE_URL}/api/employee/employee-update/${data.employeeId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
-        }
+        },
       );
 
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `Failed to update user. Status: ${response.status}, Details: ${errorText}`
+          `Failed to update user. Status: ${response.status}, Details: ${errorText}`,
         );
       }
 
@@ -83,7 +83,7 @@ export const UserProvider = ({ children }) => {
   // Create user
   const createUser = async (data) => {
     try {
-      const response = await fetch(`${BASE_URL}/api/EmployeeSave`, {
+      const response = await fetch(`${BASE_URL}/api/employee/employee-create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -92,7 +92,7 @@ export const UserProvider = ({ children }) => {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `Failed to create user. Status: ${response.status}, Details: ${errorText}`
+          `Failed to create user. Status: ${response.status}, Details: ${errorText}`,
         );
       }
 
@@ -117,12 +117,12 @@ export const UserProvider = ({ children }) => {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
-          `Failed to delete user. Status: ${response.status}, Details: ${errorText}`
+          `Failed to delete user. Status: ${response.status}, Details: ${errorText}`,
         );
       }
 
       setUserList((prevList) =>
-        prevList.filter((user) => user.employeeId !== id)
+        prevList.filter((user) => user.employeeId !== id),
       );
       toast.success("User deleted successfully!");
       return true;

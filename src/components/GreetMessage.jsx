@@ -5,7 +5,7 @@ const GreetMessage = () => {
   const [message, setMessage] = useState("");
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetch(BASE_URL + "/api/DisplayGreet");
+      const data = await fetch(BASE_URL + "/api/employee/DisplayGreet");
       const result = await data.text();
       setMessage(result);
     };

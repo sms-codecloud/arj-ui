@@ -18,6 +18,8 @@ const AddUser = () => {
     email: "",
     phoneNo: "",
     address: "",
+    countryId: "IN",
+    stateId: "KA",
   });
 
   const { createUser } = useUserInfo();

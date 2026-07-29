@@ -1,6 +1,6 @@
-export const BASE_URL = "https://arjwsilkal-001-site1.stempurl.com";
+export const BASE_URL = "http://localhost:5018"; //"https://arjwsilkal-001-site1.stempurl.com";
 
-export const PAGE_SIZE = 5;
+export const PAGE_SIZE = 10;
 
 export const NO_RECORDS_FOUND = "No records found!";
 
